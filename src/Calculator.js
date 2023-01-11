@@ -58,49 +58,90 @@ export default () => {
   const [tempInput, setTempInput] = useState(null); // 2
   const [tempOperator, setTempOperator] = useState(null); // +
 
+  const [isClickedOperator, setIsClickedOperator] = useState(false);
+  const [isClickedEqual, setIsClikcedEqual] = useState(false);
+  //   issue : 연산자 이후 두 번째 num를 한 자리수 밖에 입력 못하는 에러 있었음
+
+  //   const hasInput = input ? true : false;
+  const hasInput = !!input;
+  //   !! 어떠한 값을 Boolean값으로 변경하고자하면 !!를 쓰면 된다. 삼항연산자보다 가독성이 좋다
+
   const onPressNum = (num) => {
-    if (currentOperator) {
+    if (currentOperator && isClickedOperator) {
       setResult(input);
       setInput(num);
+      // 연산자가 들어갔을 때
+      // 1. result state 값에 input 값 저장
+      // 2. setInput에 들어온 숫자가 들어감
+
+      //   operator를 직전에 클릭을 해서 한 자리 수로 바꿔 줄때 연산자가 직전에 눌리지 않았다는 뜻으로
+      // 다시 isClikedOperator를 false로 초기화를 시켜줘야함
     } else {
       // const newInput = input + num // bad case
       const newInput = Number(`${input}${num}`); // good case
+      //숫자화
       setInput(newInput);
+      //   연산자전 숫자 입력 할 때
     }
   };
 
   const onPressOperator = (operator) => {
     if (operator !== "=") {
       setCurrentOperator(operator);
+      setIsClickedOperator(true);
+      //   isCliked를 true로 만드는 순간이 있어야한다. '='이 아닐때 true여야한다.
+      setIsClikcedEqual(false);
+      //   '='이 아닐때는 false로
+
+      //   "="이 들어오기전에는 CurrentOperator에 operator 넣기
     } else {
       let finalResult = result;
+      // 마지막 결과 변수 선언
+      const finalInput = isClickedEqual ? tempInput : input;
+      //   직전에 '='이 누르면 tempInput에 들어가고 아닐때는 그냥 input에 들어간다
+      const finalOperator = isClickedEqual ? tempOperator : currentOperator;
+
       switch (currentOperator) {
         case "+":
-          finalResult = result + input;
+          finalResult = result + finalInput;
           break;
         case "-":
-          finalResult = result - input;
+          finalResult = result - finalInput;
           break;
+          4;
         case "*":
-          finalResult = result * input;
+          finalResult = result * finalInput;
           break;
         case "/":
-          finalResult = result / input;
+          finalResult = result / finalInput;
           break;
         default:
           break;
       }
+      // 연산자 버튼을 누르고   operator가 들어오면 case에 따라서 finalResult 계산 후 값을 할당함
       setResult(finalResult);
       setInput(finalResult);
+      // 계산을 거친 finalResult는 최종적으로
+      // 1. result에 state값으로 들어감
+      // 2. setInput에 state값으로 들어감
+      setTempInput(finalInput);
+      setTempOperator(finalOperator);
+      setIsClikcedEqual(false);
+      //   '='이었을때는 true로 (equal을 클릭했었다)
     }
   };
 
   const onPressReset = () => {
-    setInput(0);
-    setCurrentOperator(null);
-    setResult(null);
-    setTempInput(null);
-    setTempOperator(null);
+    if (hasInput) {
+      setInput(0);
+      //   인풋 값이 있을때는 현재 Input값만 비워주기 (0으로만 바꿔주기)
+    } else {
+      setInput(0);
+      setCurrentOperator(null);
+      setResult(null);
+      setTempInput(null);
+      setTempOperator(null);
+    }
   };
 
   return (
@@ -120,7 +161,12 @@ export default () => {
 
       {/* [AC ~ /] */}
       <ButtonContainer>
-        <Button type="reset" text="AC" onPress={onPressReset} flex={3} />
+        <Button
+          type="reset"
+          text={hasInput ? "C" : "AC"}
+          onPress={onPressReset}
+          flex={3}
+        />
         <Button
           type="operator"
           text="/"
